@@ -69,42 +69,60 @@ if [ "$action" == 'create' ]
 			root $userDir$rootDir;
 			index index.php index.html index.htm;
 			server_name $domain;
+			
+			# Permite envio de arquivo ate 10 MB
+            client_max_body_size 10M;
+            
+            charset   utf-8;
 
-			# serve static files directly
-			location ~* \.(jpg|jpeg|gif|css|png|js|ico|html)$ {
-				access_log off;
-				expires max;
-			}
+			gzip on;
+            gzip_vary on;
+            gzip_disable "msie6";
+            gzip_comp_level 6;
+            gzip_min_length 1100;
+            gzip_buffers 16 8k;
+            gzip_proxied any;
+            gzip_types
+                text/plain
+                text/css
+                text/js
+                text/xml
+                text/javascript
+                application/javascript
+                application/x-javascript
+                application/json
+                application/xml
+                application/xml+rss;
 
-			# removes trailing slashes (prevents SEO duplicate content issues)
-			if (!-d \$request_filename) {
-				rewrite ^/(.+)/\$ /\$1 permanent;
-			}
+            location / {
+                try_files $uri $uri/ /index.php?$query_string;
+            }
 
-			# unless the request is for a valid file (image, js, css, etc.), send to bootstrap
-			if (!-e \$request_filename) {
-				rewrite ^/(.*)\$ /index.php?/\$1 last;
-				break;
-			}
+            location ~ \.php$ {
+                try_files $uri /index.php =404;
+                fastcgi_split_path_info ^(.+\.php)(/.+)$;
+                fastcgi_pass unix:/var/run/php/php7.2-fpm.sock;
+                fastcgi_index index.php;
+                fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+                include fastcgi_params;
+                fastcgi_read_timeout 300;
+            }
 
-			# removes trailing 'index' from all controllers
-			if (\$request_uri ~* index/?\$) {
-				rewrite ^/(.*)/index/?\$ /\$1 permanent;
-			}
+            location ~* \.(?:jpg|jpeg|gif|png|ico|cur|gz|svg|svgz|mp4|ogg|ogv|webm|htc|svg|woff|woff2|ttf)$ {
+              expires 1M;
+              access_log off;
+              add_header Cache-Control "public";
+            }
 
-			# catch all
-			error_page 404 /index.php;
+            location ~* \.(?:css|js)$ {
+              expires 7d;
+              access_log off;
+              add_header Cache-Control "public";
+            }
 
-			location ~ \.php$ {
-				fastcgi_split_path_info ^(.+\.php)(/.+)\$;
-				fastcgi_pass 127.0.0.1:9000;
-				fastcgi_index index.php;
-				include fastcgi_params;
-			}
-
-			location ~ /\.ht {
-				deny all;
-			}
+            location ~ /\.ht {
+                deny  all;
+            }
 
 		}" > $sitesAvailable$domain
 		then
