@@ -64,67 +64,69 @@ if [ "$action" == 'create' ]
 		fi
 
 		### create virtual host rules file
-		if ! echo "server {
-			listen   80;
-			root $userDir$rootDir;
-			index index.php index.html index.htm;
-			server_name $domain;
-			
-			# Permite envio de arquivo ate 10 MB
-            client_max_body_size 10M;
-            
-            charset   utf-8;
+		if ! echo "
+server {
+	listen 80;
+	root $userDir$rootDir;
+	index index.php index.html index.htm;
+	
+	# Permite envio de arquivo ate 10 MB
+    client_max_body_size 10M;
+    
+    server_name $domain;
+    charset utf-8;
 
-			gzip on;
-            gzip_vary on;
-            gzip_disable "msie6";
-            gzip_comp_level 6;
-            gzip_min_length 1100;
-            gzip_buffers 16 8k;
-            gzip_proxied any;
-            gzip_types
-                text/plain
-                text/css
-                text/js
-                text/xml
-                text/javascript
-                application/javascript
-                application/x-javascript
-                application/json
-                application/xml
-                application/xml+rss;
+	gzip on;
+    gzip_vary on;
+    gzip_disable \"msie6\";
+    gzip_comp_level 6;
+    gzip_min_length 1100;
+    gzip_buffers 16 8k;
+    gzip_proxied any;
+    gzip_types
+        text/plain
+        text/css
+        text/js
+        text/xml
+        text/javascript
+        application/javascript
+        application/x-javascript
+        application/json
+        application/xml
+        application/xml+rss;
 
-            location / {
-                try_files $uri $uri/ /index.php?$query_string;
-            }
+    location / {
+        try_files \$uri \$uri/ /index.php?\$query_string;
+    }
 
-            location ~ \.php$ {
-                try_files $uri /index.php =404;
-                fastcgi_split_path_info ^(.+\.php)(/.+)$;
-                fastcgi_pass unix:/var/run/php/php7.2-fpm.sock;
-                fastcgi_index index.php;
-                fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
-                include fastcgi_params;
-                fastcgi_read_timeout 300;
-            }
+    location ~ \.php$ {
+        try_files $uri /index.php =404;
+        fastcgi_split_path_info ^(.+\.php)(/.+)$;
+        fastcgi_pass unix:/var/run/php/php7.2-fpm.sock;
+        fastcgi_index index.php;
+        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
+        include fastcgi_params;
+        fastcgi_read_timeout 300;
+    }
 
-            location ~* \.(?:jpg|jpeg|gif|png|ico|cur|gz|svg|svgz|mp4|ogg|ogv|webm|htc|svg|woff|woff2|ttf)$ {
-              expires 1M;
-              access_log off;
-              add_header Cache-Control "public";
-            }
+    location ~* \.(?:jpg|jpeg|gif|png|ico|cur|gz|svg|svgz|mp4|ogg|ogv|webm|htc|svg|woff|woff2|ttf)$ {
+      expires 1M;
+      access_log off;
+      add_header Cache-Control \"public\";
+    }
 
-            location ~* \.(?:css|js)$ {
-              expires 7d;
-              access_log off;
-              add_header Cache-Control "public";
-            }
+    location ~* \.(?:css|js)$ {
+      expires 7d;
+      access_log off;
+      add_header Cache-Control \"public\";
+    }
 
-            location ~ /\.ht {
-                deny  all;
-            }
+    location ~ /\.ht {
+        deny  all;
+    }
 
-		}" > $sitesAvailable$domain
+}
+		" > $sitesAvailable$domain
 		then
 			echo -e $"There is an ERROR create $domain file"
 			exit;
@@ -152,11 +154,11 @@ if [ "$action" == 'create' ]
 			fi
 		fi
 
-		if [ "$owner" == "" ]; then
-			chown -R $(whoami):www-data $userDir$rootDir
-		else
-			chown -R $owner:www-data $userDir$rootDir
-		fi
+		#if [ "$owner" == "" ]; then
+		#	chown -R $(whoami):www-data $userDir$rootDir
+		#else
+		#	chown -R $owner:www-data $userDir$rootDir
+		#fi
 
 		### enable website
 		ln -s $sitesAvailable$domain $sitesEnable$domain
